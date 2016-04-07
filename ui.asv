@@ -13,6 +13,8 @@ function ui
     s.addAnalogOutputChannel('myDAQ1', 'ao1', 'Voltage');
     s.Channels(1).Range = [-10 10];
     s.Channels(2).Range = [-10 10];
+    outputData(:,1) = linspace(0, 0, 10);
+    s.queueOutputData (outputData);
     s.addlistener ('DataAvailable', @plot_data);
     s.addlistener ('DataRequired', @queue_more_data);
     
@@ -28,31 +30,16 @@ function ui
     
     plot_index = 0;
     
-    uicontrol('Style', 'pushbutton', 'String', 'Start',...
+    uicontrol('Style', 'pushbutton', 'String', 'start_mydaq',...
     'Position', [20 20 50 20],...
     'Callback', @start_mydaq);
-
-    uicontrol('Style', 'pushbutton', 'String', 'Stop',...
-    'Position', [20 60 50 20],...
-    'Callback', @stop_mydaq);
 
     uicontrol('Style', 'pushbutton', 'String', 'test_1',...
     'Position', [20 100 50 20],...
     'Callback', @test_1);
 
      function start_mydaq (source, callbackdata)
-        outputData(:,1) = linspace(0, 0, 10);
-        s.queueOutputData (outputData);
         s.startBackground();
-        h1(1).XData = nan(1, 100000);
-        h1(2).XData = nan(1, 100000);
-        h1(1).YData = nan(1, 100000);
-        h1(2).YData = nan(1, 100000);
-        plot_index = 0;
-     end
- 
-     function stop_mydaq (source, callbackdata)
-        s.stop();
      end
 
     function plot_data (src, event)
@@ -65,6 +52,7 @@ function ui
     
  
     function test_1 (source, callbackdata)
+        s.stop;
         disp('Test_1');
         outputData(:,1) = linspace(1, 1, 10);
         s.queueOutputData(outputData);
