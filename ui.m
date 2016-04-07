@@ -22,11 +22,16 @@ function ui
     main_figure.CloseRequestFcn = @my_closereq;
 
     emptyvec = nan(1, 100000);
-    h1 = plot(emptyvec, emptyvec, emptyvec, emptyvec);
+    
+    plot_index = 1;
+    
+    ax1 = subplot (2, 1, 1);
+    h1 = plot (emptyvec, emptyvec, emptyvec, emptyvec);
     ylim ([-10 10]);
     
-    
-    plot_index = 0;
+    ax2 = subplot (2, 1, 2);
+    h2 = plot (emptyvec);
+    ylim ([-10 10]);
     
     uicontrol('Style', 'pushbutton', 'String', 'Start',...
     'Position', [20 20 50 20],...
@@ -40,27 +45,33 @@ function ui
     'Position', [20 100 50 20],...
     'Callback', @test_1);
 
-     function start_mydaq (source, callbackdata)
+
+    t = annotation('textbox', 'Position', [0.1 0.9 0.1 0.1]);
+
+    function start_mydaq (source, callbackdata)
         outputData(:,1) = linspace(0, 0, 10);
         s.queueOutputData (outputData);
         s.startBackground();
-        h1(1).XData = nan(1, 100000);
-        h1(2).XData = nan(1, 100000);
-        h1(1).YData = nan(1, 100000);
-        h1(2).YData = nan(1, 100000);
-        plot_index = 0;
-     end
+        h1(1).XData = emptyvec;
+        h1(2).XData = emptyvec;
+        h1(1).YData = emptyvec;
+        h1(2).YData = emptyvec;
+        plot_index = 1;
+    end
  
-     function stop_mydaq (source, callbackdata)
+    function stop_mydaq (source, callbackdata)
         s.stop();
-     end
+    end
 
     function plot_data (src, event)
         plot_index = plot_index + 1;
-        h1(1).XData(plot_index) = event.TimeStamps;
-        h1(2).XData(plot_index) = event.TimeStamps;
-        h1(1).YData(plot_index) = event.Data (1);
-        h1(2).YData(plot_index) = event.Data (2);
+        h1(1).XData (plot_index) = event.TimeStamps;
+        h1(2).XData (plot_index) = event.TimeStamps;
+        h1(1).YData (plot_index) = event.Data (1);
+        h1(2).YData (plot_index) = event.Data (2);
+        h2(1).XData (plot_index) = event.TimeStamps;
+        h2(1).YData (plot_index) = h1(1).YData (plot_index) - h1(1).YData (plot_index - 1);
+        set(t,'String',['V ' num2str(h1(1).YData (plot_index))]);
     end
     
  
@@ -70,13 +81,13 @@ function ui
         s.queueOutputData(outputData);
     end
 
-    function queue_more_data (src,event)
+    function queue_more_data (src, event)
         disp('more data');
         outputData(:,1) = linspace(0, 0, 10);
         s.queueOutputData(outputData);
     end
 
-    function my_closereq (src,callbackdata)
+    function my_closereq (src, callbackdata)
         disp ('Close');
         s.stop;
         delete (main_figure);
